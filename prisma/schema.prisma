@@ -1,0 +1,985 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String?
+  name          String?
+  avatar        String?
+  level         Level     @default(A0)
+  xp            Int       @default(0)
+  coins         Int       @default(0)
+  streak        Int       @default(0)
+  lastActiveAt  DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  googleId      String?   @unique
+  appleId       String?   @unique
+  
+  subscription  Subscription @default(FREE)
+  
+  // AI Learning Engine
+  careerGoal    CareerGoal?
+  learningStyle LearningStyle?
+  weakTopics    String[]
+  strongTopics  String[]
+  
+  // CEFR Certification
+  certifications Certification[]
+  
+  lessons       LessonProgress[]
+  chats         Chat[]
+  chatMessages  ChatMessage[]
+  achievements  UserAchievement[]
+  dailyQuests   UserDailyQuest[]
+  storyProgress UserStoryProgress[]
+  vocabulary    UserVocabulary[]
+  
+  // Speech Analytics
+  speechRecords SpeechRecord[]
+  
+  // Knowledge Graph
+  knowledgeNodes KnowledgeNode[]
+  
+  // Learning Analytics
+  weeklyStats   WeeklyStats[]
+  
+  // AI Memory
+  aiMemory      AIMemory[]
+  
+  // Live Conversation Club
+  conversationParticipants ConversationParticipant[]
+  
+  // B2B - Teacher Dashboard
+  studentEnrollments StudentEnrollment[]
+  
+  @@index([email])
+  @@index([googleId])
+  @@index([appleId])
+}
+
+enum Level {
+  A0
+  A1
+  A2
+  B1
+  B2
+}
+
+enum Subscription {
+  FREE
+  PREMIUM
+  PREMIUM_PLUS
+  LIFETIME
+}
+
+model Lesson {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  level       Level
+  order       Int
+  locationId  String?
+  
+  topics      String[]
+  dialogs     Json
+  
+  progress    LessonProgress[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([level])
+  @@index([order])
+  @@index([locationId])
+}
+
+model LessonProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  lessonId    String
+  completed   Boolean  @default(false)
+  score       Int?
+  completedAt DateTime?
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([userId, lessonId])
+  @@index([userId])
+  @@index([lessonId])
+}
+
+model Chat {
+  id          String        @id @default(cuid())
+  userId      String
+  title       String?
+  aiCharacter String?
+  
+  messages    ChatMessage[]
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+}
+
+model ChatMessage {
+  id          String   @id @default(cuid())
+  chatId      String
+  userId      String
+  role        String   // user or assistant
+  content     String
+  audioUrl    String?
+  corrections Json?
+  
+  chat        Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([chatId])
+  @@index([userId])
+}
+
+model Vocabulary {
+  id          String          @id @default(cuid())
+  russian     String
+  uzbek       String
+  pronunciation String?
+  example     String?
+  category    String?
+  lessonId    String?
+  
+  userVocab   UserVocabulary[]
+  
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  
+  @@index([lessonId])
+  @@index([category])
+}
+
+model UserVocabulary {
+  id          String   @id @default(cuid())
+  userId      String
+  vocabularyId String
+  mastered    Boolean  @default(false)
+  reviewCount Int      @default(0)
+  lastReviewedAt DateTime?
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vocabulary  Vocabulary @relation(fields: [vocabularyId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([userId, vocabularyId])
+  @@index([userId])
+  @@index([vocabularyId])
+}
+
+model Grammar {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  examples    Json
+  level       Level
+  lessonId    String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([level])
+  @@index([lessonId])
+}
+
+model Achievement {
+  id          String          @id @default(cuid())
+  title       String
+  description String
+  icon        String?
+  condition   String
+  reward      Int
+  coinReward  Int?
+  
+  userAchievements UserAchievement[]
+  
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model UserAchievement {
+  id            String       @id @default(cuid())
+  userId        String
+  achievementId String
+  unlocked      Boolean      @default(false)
+  unlockedAt    DateTime?
+  
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement   Achievement  @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@index([achievementId])
+}
+
+model DailyQuest {
+  id          String          @id @default(cuid())
+  title       String
+  description String
+  type        QuestType
+  target      Int
+  xpReward    Int
+  coinReward  Int
+  
+  userQuests  UserDailyQuest[]
+  
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+enum QuestType {
+  LESSON
+  CHAT
+  VOCABULARY
+  STREAK
+}
+
+model UserDailyQuest {
+  id          String     @id @default(cuid())
+  userId      String
+  questId     String
+  date        DateTime
+  progress    Int        @default(0)
+  completed   Boolean    @default(false)
+  
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quest       DailyQuest @relation(fields: [questId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  
+  @@unique([userId, questId, date])
+  @@index([userId])
+  @@index([questId])
+}
+
+model StoryLocation {
+  id          String              @id @default(cuid())
+  name        String
+  description String
+  order       Int
+  level       Level
+  unlocked    Boolean             @default(false)
+  
+  userProgress UserStoryProgress[]
+  
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  
+  @@index([order])
+  @@index([level])
+}
+
+model UserStoryProgress {
+  id          String       @id @default(cuid())
+  userId      String
+  locationId  String
+  unlocked    Boolean      @default(false)
+  completed   Boolean      @default(false)
+  
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  location    StoryLocation @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  @@unique([userId, locationId])
+  @@index([userId])
+  @@index([locationId])
+}
+
+// AI Learning Engine - Career Goals
+enum CareerGoal {
+  WORK_IN_RUSSIA
+  IT_COMPANY
+  UNIVERSITY
+  TRAVEL
+  BUSINESS
+  GENERAL
+}
+
+enum LearningStyle {
+  VISUAL
+  AUDITORY
+  KINESTHETIC
+  READING
+  MIXED
+}
+
+// CEFR Certification
+model Certification {
+  id          String   @id @default(cuid())
+  userId      String
+  level       Level
+  score       Int
+  examDate    DateTime
+  expiresAt   DateTime
+  certificateUrl String?
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([level])
+}
+
+// Speech Analytics
+model SpeechRecord {
+  id              String   @id @default(cuid())
+  userId          String
+  audioUrl        String
+  transcript      String
+  pronunciationScore Float
+  fluencyScore    Float
+  intonationScore Float
+  stressScore     Float
+  pauseScore      Float
+  overallScore    Float
+  feedback        Json
+  
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([userId])
+}
+
+// Knowledge Graph
+model KnowledgeNode {
+  id          String   @id @default(cuid())
+  userId      String
+  topic       String
+  mastery     Float    // 0.0 to 1.0
+  lastReviewedAt DateTime
+  reviewCount Int      @default(0)
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([userId, topic])
+  @@index([userId])
+}
+
+// Learning Analytics
+model WeeklyStats {
+  id          String   @id @default(cuid())
+  userId      String
+  weekStart   DateTime
+  weekEnd     DateTime
+  lessonsCompleted Int
+  chatMessagesSent Int
+  vocabularyLearned Int
+  xpGained    Int
+  timeSpentMinutes Int
+  weakTopics  String[]
+  improvementRate Float
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  
+  @@unique([userId, weekStart])
+  @@index([userId])
+}
+
+// AI Memory
+model AIMemory {
+  id          String   @id @default(cuid())
+  userId      String
+  memoryType  String   // 'weakness', 'improvement', 'preference', 'context'
+  content     String
+  importance  Float    @default(0.5)
+  lastUsedAt  DateTime?
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([memoryType])
+}
+
+// Live Conversation Club
+model Conversation {
+  id          String   @id @default(cuid())
+  topic       String
+  level       Level
+  maxParticipants Int
+  scheduledAt DateTime
+  startedAt   DateTime?
+  endedAt     DateTime?
+  aiModerator String?
+  
+  participants ConversationParticipant[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([scheduledAt])
+}
+
+model ConversationParticipant {
+  id              String   @id @default(cuid())
+  userId          String
+  conversationId  String
+  joinedAt        DateTime
+  leftAt          DateTime?
+  participationScore Float?
+  feedback        Json?
+  
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime @default(now())
+  
+  @@unique([userId, conversationId])
+  @@index([userId])
+  @@index([conversationId])
+}
+
+// B2B - Teacher Dashboard
+model Teacher {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  institution String?
+  verified    Boolean  @default(false)
+  students    StudentEnrollment[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([institution])
+}
+
+model StudentEnrollment {
+  id          String   @id @default(cuid())
+  teacherId   String
+  userId      String
+  enrolledAt  DateTime
+  assignedTasks Json?
+  notes       String?
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teacher     Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([teacherId, userId])
+  @@index([teacherId])
+  @@index([userId])
+}
+
+// Real Scenario Simulation
+model Scenario {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  level       Level
+  context     String   // 'airport', 'hotel', 'restaurant', etc.
+  difficulty  Int      // 1-10
+  objectives  String[]
+  aiScript    Json?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([level])
+  @@index([context])
+}
+
+model UserScenarioProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  scenarioId  String
+  completed   Boolean  @default(false)
+  score       Int?
+  attempts    Int      @default(0)
+  feedback    Json?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([userId, scenarioId])
+  @@index([userId])
+  @@index([scenarioId])
+}
+
+// AI Generated Lessons
+model GeneratedLesson {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  content     Json
+  topics      String[]
+  level       Level
+  generatedBy String   // 'ai'
+  approved    Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([approved])
+}
+
+// AI Mentor - Proactive Coaching
+model MentorMessage {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String   // 'proactive', 'reminder', 'motivation', 'correction'
+  content     String
+  priority    Int      @default(5) // 1-10
+  read        Boolean  @default(false)
+  actionTaken Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([read])
+}
+
+// Memory System - Word-level mistake tracking
+model WordMistake {
+  id          String   @id @default(cuid())
+  userId      String
+  word        String
+  mistake     String
+  correction  String
+  context     String?
+  date        DateTime
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([word])
+  @@index([date])
+}
+
+// AI Study Planner
+model StudyPlan {
+  id          String   @id @default(cuid())
+  userId      String
+  goal        String
+  targetDate  DateTime
+  dailyTasks  Json
+  weeklyGoals Json
+  progress    Float    @default(0)
+  completed   Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([targetDate])
+}
+
+// Daily Mission
+model DailyMission {
+  id          String   @id @default(cuid())
+  userId      String
+  date        DateTime
+  mission     String
+  context     String   // 'restaurant', 'hotel', etc.
+  completed   Boolean  @default(false)
+  score       Int?
+  
+  createdAt   DateTime @default(now())
+  
+  @@unique([userId, date])
+  @@index([userId])
+  @@index([date])
+}
+
+// AI Review Generator
+model ReviewSession {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String   // 'forgotten_words', 'difficult_grammar', 'dialog_review'
+  content     Json
+  generatedAt DateTime
+  completed   Boolean  @default(false)
+  score       Int?
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([generatedAt])
+}
+
+// Explain My Mistake
+model MistakeExplanation {
+  id          String   @id @default(cuid())
+  userId      String
+  original    String
+  corrected   String
+  explanation String
+  rule        String?
+  examples    String[]
+  exercises   Json
+  reviewed    Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+}
+
+// AI Coach Timeline
+model TimelineEvent {
+  id          String   @id @default(cuid())
+  userId      String
+  eventType   String   // 'milestone', 'streak', 'improvement', 'setback'
+  description String
+  metadata    Json
+  date        DateTime
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([date])
+}
+
+// AI Evaluation Engine - Structured Scoring
+model SkillEvaluation {
+  id          String   @id @default(cuid())
+  userId      String
+  exerciseId  String?
+  exerciseType String  // 'lesson', 'dialog', 'quiz', 'speaking', 'listening'
+  
+  vocabularyScore  Int
+  grammarScore     Int
+  pronunciationScore Int
+  confidenceScore  Int
+  fluencyScore     Int
+  listeningScore   Int?
+  overallScore     Int
+  
+  feedback    String?
+  evaluatedAt DateTime
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([exerciseId])
+  @@index([evaluatedAt])
+}
+
+// CEFR Mapping Engine - Skill-based CEFR Levels
+model SkillCefrLevel {
+  id          String   @id @default(cuid())
+  userId      String
+  
+  grammarLevel    Level
+  listeningLevel  Level
+  speakingLevel   Level
+  readingLevel    Level
+  writingLevel    Level
+  overallLevel    Level
+  
+  assessedAt DateTime
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([userId])
+  @@index([userId])
+}
+
+// Learning Evidence - Track Completed Exercises
+model LearningEvidence {
+  id          String   @id @default(cuid())
+  userId      String
+  level       Level
+  
+  dialogCount     Int      @default(0)
+  quizCount       Int      @default(0)
+  speakingCount   Int      @default(0)
+  listeningCount  Int      @default(0)
+  readingCount    Int      @default(0)
+  writingCount    Int      @default(0)
+  
+  completedAt DateTime
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([userId, level])
+  @@index([userId])
+  @@index([level])
+}
+
+// Adaptive Difficulty
+model UserDifficulty {
+  id          String   @id @default(cuid())
+  userId      String
+  
+  currentDifficulty String // 'easy', 'medium', 'hard', 'native'
+  consecutiveCorrect  Int  @default(0)
+  consecutiveWrong   Int  @default(0)
+  
+  lastAdjustedAt DateTime
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([userId])
+  @@index([userId])
+}
+
+// AI Risk Prediction
+model ChurnRisk {
+  id          String   @id @default(cuid())
+  userId      String
+  
+  riskScore   Float    // 0-100
+  riskLevel   String   // 'low', 'medium', 'high', 'critical'
+  predictedChurnDate DateTime?
+  factors     Json     // { inactivity: 0.3, lowEngagement: 0.4, etc }
+  
+  interventionSent Boolean @default(false)
+  interventionType String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([userId])
+  @@index([userId])
+  @@index([riskLevel])
+}
+
+// Placement Test
+model PlacementTest {
+  id          String   @id @default(cuid())
+  userId      String
+  
+  grammarScore    Int
+  listeningScore  Int
+  speakingScore   Int
+  vocabularyScore Int
+  pronunciationScore Int
+  
+  overallScore    Int
+  suggestedLevel  Level
+  
+  completedAt DateTime
+  
+  createdAt   DateTime @default(now())
+  
+  @@unique([userId])
+  @@index([userId])
+}
+
+// AI Content Pipeline
+model ContentGeneration {
+  id          String   @id @default(cuid())
+  userId      String?   // Admin who requested
+  topic       String
+  level       Level
+  
+  generatedContent Json // { lesson, dialog, quiz, flashcard, grammar, vocabulary, roleplay, homework }
+  
+  status      String   // 'pending', 'generating', 'completed', 'failed'
+  generatedAt DateTime?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+}
+
+// Learning Data Lake
+model LearningEvent {
+  id          String   @id @default(cuid())
+  userId      String
+  
+  eventType   String   // 'lesson_started', 'lesson_completed', 'voice_attempt', 'grammar_error', 'review', 'mission', 'conversation'
+  metadata    Json
+  
+  sessionId   String?
+  deviceInfo  String?
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([eventType])
+  @@index([createdAt])
+}
+
+// Parent/Employer Dashboard
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  type        String   // 'parent', 'company', 'university'
+  email       String
+  phone       String?
+  
+  subscription Subscription @default(FREE)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([type])
+}
+
+model OrganizationMember {
+  id          String   @id @default(cuid())
+  organizationId String
+  userId      String
+  role        String   // 'admin', 'viewer', 'member'
+
+  permissions Json?
+
+  createdAt   DateTime @default(now())
+
+  @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@index([userId])
+}
+
+// AI Interview - HR Simulation
+model Interview {
+  id          String   @id @default(cuid())
+  userId      String
+
+  jobType     String   // 'it', 'business', 'general', 'medical', etc.
+  level       Level
+
+  questions   Json     // Array of interview questions
+  answers     Json?    // Array of user answers
+  scoring     Json     // Scoring criteria
+
+  status      String   // 'pending', 'in_progress', 'completed'
+  overallScore Int?
+
+  completedAt DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([jobType])
+}
+
+// Shadowing Mode - Repeat after native speaker
+model ShadowingSession {
+  id          String   @id @default(cuid())
+  userId      String
+
+  level       Level
+  topic       String
+
+  phrases     Json     // Array of phrases to repeat
+  dialog      Json?    // Optional dialog for shadowing
+  recordings  Json?    // Array of user recordings with comparison
+
+  status      String   // 'pending', 'in_progress', 'completed'
+  overallScore Int?
+
+  completedAt DateTime?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([topic])
+}
+
+// Learning Replay - Weekly video reports
+model LearningReplay {
+  id          String   @id @default(cuid())
+  userId      String
+
+  startDate   DateTime
+  endDate     DateTime
+
+  report      Json     // Report content with highlights, achievements, etc.
+  stats       Json     // Statistics for the period
+
+  generatedAt DateTime
+
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([generatedAt])
+}
+
+// Marketplace - Teacher content platform
+model MarketplaceContent {
+  id          String   @id @default(cuid())
+  teacherId   String
+
+  title       String
+  description String
+  content     Json     // Lesson content, exercises, etc.
+  price       Int      // Price in coins
+
+  category    String   // 'lesson', 'exercise', 'dialog', 'vocabulary', etc.
+  status      String   // 'pending', 'approved', 'rejected'
+  rejectionReason String?
+
+  approvedAt  DateTime?
+
+  purchases   MarketplacePurchase[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([teacherId])
+  @@index([status])
+  @@index([category])
+}
+
+model MarketplacePurchase {
+  id          String   @id @default(cuid())
+  userId      String
+  contentId   String
+  teacherId   String
+
+  amount      Int      // Amount paid in coins
+
+  purchasedAt DateTime
+
+  content     MarketplaceContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([contentId])
+  @@index([teacherId])
+}
