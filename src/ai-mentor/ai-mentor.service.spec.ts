@@ -90,7 +90,7 @@ describe('AiMentorService', () => {
 
       mockPrismaService.mentorMessage.findMany.mockResolvedValue(mockMessages);
 
-      const result = await service.getUserMessages('user1');
+      const result = await service.getMentorMessages('user1');
 
       expect(result).toEqual(mockMessages);
       expect(prismaService.mentorMessage.findMany).toHaveBeenCalledWith({

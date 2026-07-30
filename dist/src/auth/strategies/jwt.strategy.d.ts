@@ -11,7 +11,7 @@ export declare class JwtStrategy extends JwtStrategy_base {
     validate(payload: any): Promise<{
         lessons: ({
             lesson: {
-                level: import(".prisma/client").$Enums.Level;
+                level: import("@prisma/client").$Enums.Level;
                 id: string;
                 description: string | null;
                 order: number;
@@ -27,10 +27,10 @@ export declare class JwtStrategy extends JwtStrategy_base {
             createdAt: Date;
             updatedAt: Date;
             lessonId: string;
-            completed: boolean;
             score: number | null;
-            completedAt: Date | null;
             userId: string;
+            completed: boolean;
+            completedAt: Date | null;
         })[];
         achievements: ({
             achievement: {
@@ -39,10 +39,10 @@ export declare class JwtStrategy extends JwtStrategy_base {
                 createdAt: Date;
                 updatedAt: Date;
                 title: string;
+                coinReward: number | null;
                 icon: string | null;
                 condition: string;
                 reward: number;
-                coinReward: number | null;
             };
         } & {
             id: string;
@@ -60,23 +60,23 @@ export declare class JwtStrategy extends JwtStrategy_base {
                 createdAt: Date;
                 updatedAt: Date;
                 title: string;
-                coinReward: number;
-                type: import(".prisma/client").$Enums.QuestType;
+                type: import("@prisma/client").$Enums.QuestType;
                 target: number;
                 xpReward: number;
+                coinReward: number;
             };
         } & {
             id: string;
             createdAt: Date;
             updatedAt: Date;
             progress: number;
-            completed: boolean;
             userId: string;
+            completed: boolean;
             date: Date;
             questId: string;
         })[];
     } & {
-        level: import(".prisma/client").$Enums.Level;
+        level: import("@prisma/client").$Enums.Level;
         id: string;
         name: string | null;
         createdAt: Date;
@@ -90,7 +90,11 @@ export declare class JwtStrategy extends JwtStrategy_base {
         coins: number;
         streak: number;
         lastActiveAt: Date;
-        subscription: import(".prisma/client").$Enums.Subscription;
+        subscription: import("@prisma/client").$Enums.Subscription;
+        careerGoal: import("@prisma/client").$Enums.CareerGoal | null;
+        learningStyle: import("@prisma/client").$Enums.LearningStyle | null;
+        weakTopics: string[];
+        strongTopics: string[];
     }>;
 }
 export {};

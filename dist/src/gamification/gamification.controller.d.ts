@@ -3,7 +3,7 @@ export declare class GamificationController {
     private gamificationService;
     constructor(gamificationService: GamificationService);
     getLeaderboard(): Promise<{
-        level: import(".prisma/client").$Enums.Level;
+        level: import("@prisma/client").$Enums.Level;
         id: string;
         name: string;
         avatar: string;
@@ -16,24 +16,24 @@ export declare class GamificationController {
         unlocked: boolean;
         unlockedAt: Date;
         id: string;
+        description: string;
         createdAt: Date;
         updatedAt: Date;
         title: string;
-        description: string;
+        coinReward: number | null;
         icon: string | null;
         condition: string;
         reward: number;
-        coinReward: number | null;
     }[]>;
     getStoryLocations(req: any): Promise<{
         unlocked: boolean;
         completed: boolean;
-        level: import(".prisma/client").$Enums.Level;
+        level: import("@prisma/client").$Enums.Level;
         id: string;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
         description: string;
         order: number;
+        createdAt: Date;
+        updatedAt: Date;
     }[]>;
 }

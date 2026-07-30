@@ -63,6 +63,17 @@ model User {
   // B2B - Teacher Dashboard
   studentEnrollments StudentEnrollment[]
   
+  // Memory System
+  wordMistakes   WordMistake[]
+  
+  // Additional relations for AI features
+  interviews    Interview[]
+  shadowingSessions ShadowingSession[]
+  studyPlans    StudyPlan[]
+  skillCefrLevels SkillCefrLevel[]
+  churnRisks    ChurnRisk[]
+  organizationMembers OrganizationMember[]
+  
   @@index([email])
   @@index([googleId])
   @@index([appleId])
@@ -518,6 +529,8 @@ model Scenario {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
+  progress    UserScenarioProgress[]
+  
   @@index([level])
   @@index([context])
 }
@@ -533,6 +546,8 @@ model UserScenarioProgress {
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  
+  scenario    Scenario @relation(fields: [scenarioId], references: [id])
   
   @@unique([userId, scenarioId])
   @@index([userId])
@@ -584,6 +599,8 @@ model WordMistake {
   
   createdAt   DateTime @default(now())
   
+  user        User     @relation(fields: [userId], references: [id])
+  
   @@index([userId])
   @@index([word])
   @@index([date])
@@ -602,6 +619,8 @@ model StudyPlan {
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  
+  user        User     @relation(fields: [userId], references: [id])
   
   @@index([userId])
   @@index([targetDate])
@@ -714,6 +733,8 @@ model SkillCefrLevel {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
+  user        User     @relation(fields: [userId], references: [id])
+  
   @@unique([userId])
   @@index([userId])
 }
@@ -774,6 +795,8 @@ model ChurnRisk {
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  
+  user        User     @relation(fields: [userId], references: [id])
   
   @@unique([userId])
   @@index([userId])
@@ -852,6 +875,8 @@ model Organization {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
+  members     OrganizationMember[]
+  
   @@index([type])
 }
 
@@ -864,6 +889,9 @@ model OrganizationMember {
   permissions Json?
 
   createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
 
   @@unique([organizationId, userId])
   @@index([organizationId])
@@ -884,11 +912,12 @@ model Interview {
 
   status      String   // 'pending', 'in_progress', 'completed'
   overallScore Int?
-
-  completedAt DateTime?
+  feedback    Json?
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([status])
@@ -914,6 +943,8 @@ model ShadowingSession {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([status])

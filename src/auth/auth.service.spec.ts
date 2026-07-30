@@ -93,7 +93,7 @@ describe('AuthService', () => {
 
       mockJwtService.sign.mockReturnValue('mockToken');
 
-      const result = await service.login(mockUser);
+      const result = await service.login('test@example.com', 'password');
 
       expect(result).toEqual({
         access_token: 'mockToken',
@@ -128,7 +128,7 @@ describe('AuthService', () => {
       mockUsersService.create.mockResolvedValue(mockUser);
       mockJwtService.sign.mockReturnValue('mockToken');
 
-      const result = await service.register(registerDto);
+      const result = await service.register('new@example.com', 'password', 'New User');
 
       expect(result).toEqual({
         access_token: 'mockToken',
@@ -151,7 +151,7 @@ describe('AuthService', () => {
 
       mockUsersService.findByEmail.mockResolvedValue(mockUser);
 
-      await expect(service.register(registerDto)).rejects.toThrow();
+      await expect(service.register('existing@example.com', 'password', 'Existing User')).rejects.toThrow();
     });
   });
 });

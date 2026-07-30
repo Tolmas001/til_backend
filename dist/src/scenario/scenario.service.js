@@ -1,0 +1,379 @@
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var ScenarioService_1;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ScenarioService = void 0;
+const common_1 = require("@nestjs/common");
+const prisma_service_1 = require("../prisma/prisma.service");
+const config_1 = require("@nestjs/config");
+const openai_1 = require("openai");
+let ScenarioService = ScenarioService_1 = class ScenarioService {
+    constructor(prisma, configService) {
+        this.prisma = prisma;
+        this.configService = configService;
+        this.openai = null;
+        this.logger = new common_1.Logger(ScenarioService_1.name);
+        const apiKey = this.configService.get('OPENAI_API_KEY');
+        if (apiKey && apiKey !== 'your-openai-api-key') {
+            this.openai = new openai_1.default({ apiKey });
+        }
+    }
+    async generateScenario(userId, context, level) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+        if (!user) {
+            throw new Error('User not found');
+        }
+        if (!this.openai) {
+            return this.generateFallbackScenario(context, level);
+        }
+        try {
+            const response = await this.openai.chat.completions.create({
+                model: 'gpt-4o-mini',
+                messages: [
+                    {
+                        role: 'system',
+                        content: `You are a scenario generator for Russian language learning. Create a dynamic, realistic scenario.
+Context: ${context}
+User level: ${level}
+User's weak topics: ${user.weakTopics?.join(', ') || 'None'}
+User's career goal: ${user.careerGoal || 'General'}
+
+Return JSON format:
+{
+  "scenario": {
+    "title": "Scenario title",
+    "description": "Brief description",
+    "context": "${context}",
+    "difficulty": 5,
+    "objectives": ["objective 1", "objective 2"],
+    "initialSituation": "Starting situation description",
+    "dynamicEvents": [
+      {
+        "trigger": "condition",
+        "event": "what happens",
+        "requiredResponse": "what user must say/do"
+      }
+    ],
+    "characters": [
+      {
+        "name": "Character name",
+        "role": "role in scenario",
+        "personality": "personality traits"
+      }
+    ],
+    "successCriteria": ["criteria 1", "criteria 2"]
+  }
+}`,
+                    },
+                ],
+                response_format: { type: 'json_object' },
+            });
+            const parsed = JSON.parse(response.choices[0].message.content || '{}');
+            const scenario = await this.prisma.scenario.create({
+                data: {
+                    title: parsed.scenario.title,
+                    description: parsed.scenario.description,
+                    level,
+                    context,
+                    difficulty: parsed.scenario.difficulty,
+                    objectives: parsed.scenario.objectives,
+                    aiScript: parsed.scenario,
+                },
+            });
+            return { scenario: parsed.scenario, scenarioId: scenario.id };
+        }
+        catch (err) {
+            this.logger.error('AI scenario generation failed, using fallback', err.message);
+            return this.generateFallbackScenario(context, level);
+        }
+    }
+    async generateFallbackScenario(context, level) {
+        const scenarios = {
+            airport: {
+                title: 'Aeroportda samolyot bekor qilindi',
+                description: 'Siz aeroportdasiz. Samolyotingiz bekor qilindi. Yordam so\'rashingiz kerak.',
+                context: 'airport',
+                difficulty: 3,
+                objectives: [
+                    'Xodim bilan gaplashish',
+                    'Muammoni tushuntirish',
+                    'Alternativ yo\'l so\'rash',
+                ],
+                initialSituation: 'Siz aeroportda kuting zonasidasiz. Ekranda "DELAYED" so\'zi paydo bo\'ldi.',
+                dynamicEvents: [
+                    {
+                        trigger: 'user asks for help',
+                        event: 'Xodim keladi va siz bilan gaplashadi',
+                        requiredResponse: 'Muammoni rus tilida tushuntirish',
+                    },
+                    {
+                        trigger: 'user explains situation',
+                        event: 'Xodim boshqa reysni taklif qiladi',
+                        requiredResponse: 'Rozilik yoki rad etish',
+                    },
+                ],
+                characters: [
+                    {
+                        name: 'Aeroport xodimi',
+                        role: 'Yordam beruvchi',
+                        personality: 'Professional, do\'stona',
+                    },
+                ],
+                successCriteria: [
+                    'Muammoni to\'g\'ri tushuntirgan',
+                    'Alternativ yechim topgan',
+                    'Muvaffaqiyatli muloqot qilgan',
+                ],
+            },
+            hotel: {
+                title: 'Mehmonxonada xona muammosi',
+                description: 'Mehmonxonangizda muammo bor. Adminstrator bilan gaplashingiz kerak.',
+                context: 'hotel',
+                difficulty: 4,
+                objectives: [
+                    'Muammoni bildirish',
+                    'Yechim so\'rash',
+                    'Rozilik olish',
+                ],
+                initialSituation: 'Xonangizda ishlamayapti. Resepsiyonga borishingiz kerak.',
+                dynamicEvents: [
+                    {
+                        trigger: 'user approaches reception',
+                        event: 'Adminstrator salomlaydi',
+                        requiredResponse: 'Muammoni tushuntirish',
+                    },
+                    {
+                        trigger: 'user explains issue',
+                        event: 'Adminstrator boshqa xona taklif qiladi',
+                        requiredResponse: 'Qabul qilish yoki rad etish',
+                    },
+                ],
+                characters: [
+                    {
+                        name: 'Adminstrator',
+                        role: 'Mehmonxona xodimi',
+                        personality: 'Hushmuomala, samimiy',
+                    },
+                ],
+                successCriteria: [
+                    'Muammoni aniq bildirgan',
+                    'Yechim topgan',
+                    'Muvaffaqiyatli hal qilgan',
+                ],
+            },
+            restaurant: {
+                title: 'Restoranda buyurtma muammosi',
+                description: 'Buyurtmangiz noto\'g\'ri keldi. Ofitsiant bilan gaplashingiz kerak.',
+                context: 'restaurant',
+                difficulty: 3,
+                objectives: [
+                    'Xatoni bildirish',
+                    'To\'g\'ri buyurtma so\'rash',
+                    'Hisob-kitob qilish',
+                ],
+                initialSituation: 'Sizning buyurtmangiz emas, boshqa taom keldi.',
+                dynamicEvents: [
+                    {
+                        trigger: 'user calls waiter',
+                        event: 'Ofitsiant keladi',
+                        requiredResponse: 'Xatoni tushuntirish',
+                    },
+                    {
+                        trigger: 'user explains error',
+                        event: 'Ofitsiant uzr so\'raydi va yangi buyurtma olib keladi',
+                        requiredResponse: 'Rahmat aytish',
+                    },
+                ],
+                characters: [
+                    {
+                        name: 'Ofitsiant',
+                        role: 'Xizmat ko\'rsatuvchi',
+                        personality: 'Hushmuomala, tezkor',
+                    },
+                ],
+                successCriteria: [
+                    'Xatoni to\'g\'ri bildirgan',
+                    'Yangi buyurtma olgan',
+                    'Muvaffaqiyatli tugatgan',
+                ],
+            },
+        };
+        const scenario = scenarios[context] || scenarios.airport;
+        const dbScenario = await this.prisma.scenario.create({
+            data: {
+                title: scenario.title,
+                description: scenario.description,
+                level,
+                context,
+                difficulty: scenario.difficulty,
+                objectives: scenario.objectives,
+                aiScript: scenario,
+            },
+        });
+        return { scenario, scenarioId: dbScenario.id };
+    }
+    async startScenario(userId, scenarioId) {
+        const scenario = await this.prisma.scenario.findUnique({
+            where: { id: scenarioId },
+        });
+        if (!scenario) {
+            throw new Error('Scenario not found');
+        }
+        const existingProgress = await this.prisma.userScenarioProgress.findUnique({
+            where: {
+                userId_scenarioId: {
+                    userId,
+                    scenarioId,
+                },
+            },
+        });
+        if (existingProgress) {
+            return {
+                scenario,
+                progress: existingProgress,
+                message: 'Resuming previous attempt',
+            };
+        }
+        const progress = await this.prisma.userScenarioProgress.create({
+            data: {
+                userId,
+                scenarioId,
+                attempts: 1,
+            },
+        });
+        return {
+            scenario,
+            progress,
+            message: 'Starting new scenario',
+        };
+    }
+    async submitScenarioResponse(userId, scenarioId, response, currentEvent) {
+        const scenario = await this.prisma.scenario.findUnique({
+            where: { id: scenarioId },
+        });
+        if (!scenario) {
+            throw new Error('Scenario not found');
+        }
+        if (!this.openai) {
+            return this.evaluateFallbackResponse(response);
+        }
+        try {
+            const aiScript = scenario.aiScript;
+            const aiResponse = await this.openai.chat.completions.create({
+                model: 'gpt-4o-mini',
+                messages: [
+                    {
+                        role: 'system',
+                        content: `You are evaluating a Russian language learner's response in a scenario.
+Current event: ${currentEvent}
+Required response: ${aiScript.dynamicEvents?.find((e) => e.trigger === currentEvent)?.requiredResponse || 'Respond appropriately'}
+
+Return JSON format:
+{
+  "score": 85,
+  "isCorrect": true,
+  "feedback": "Good response, clear and appropriate",
+  "nextEvent": "next trigger",
+  "suggestedImprovement": "Could be more formal"
+}`,
+                    },
+                    {
+                        role: 'user',
+                        content: `User's response: "${response}"`,
+                    },
+                ],
+                response_format: { type: 'json_object' },
+            });
+            const parsed = JSON.parse(aiResponse.choices[0].message.content || '{}');
+            await this.prisma.userScenarioProgress.update({
+                where: {
+                    userId_scenarioId: {
+                        userId,
+                        scenarioId,
+                    },
+                },
+                data: {
+                    feedback: parsed,
+                },
+            });
+            return parsed;
+        }
+        catch (err) {
+            this.logger.error('AI evaluation failed, using fallback', err.message);
+            return this.evaluateFallbackResponse(response);
+        }
+    }
+    evaluateFallbackResponse(response) {
+        const score = response.length > 10 ? 75 : 50;
+        return {
+            score,
+            isCorrect: score > 60,
+            feedback: 'Basic evaluation - AI analysis not available',
+            nextEvent: 'continue',
+            suggestedImprovement: 'Practice more complex responses',
+        };
+    }
+    async completeScenario(userId, scenarioId, finalScore) {
+        const progress = await this.prisma.userScenarioProgress.update({
+            where: {
+                userId_scenarioId: {
+                    userId,
+                    scenarioId,
+                },
+            },
+            data: {
+                completed: true,
+                score: finalScore,
+            },
+        });
+        if (finalScore >= 70) {
+            await this.prisma.user.update({
+                where: { id: userId },
+                data: {
+                    xp: { increment: 30 },
+                    coins: { increment: 15 },
+                },
+            });
+        }
+        return {
+            progress,
+            passed: finalScore >= 70,
+            rewards: finalScore >= 70 ? { xp: 30, coins: 15 } : null,
+        };
+    }
+    async getAvailableScenarios(level, context) {
+        const where = {};
+        if (level)
+            where.level = level;
+        if (context)
+            where.context = context;
+        return this.prisma.scenario.findMany({
+            where,
+            orderBy: { difficulty: 'asc' },
+        });
+    }
+    async getUserScenarioProgress(userId) {
+        return this.prisma.userScenarioProgress.findMany({
+            where: { userId },
+            include: { scenario: true },
+            orderBy: { updatedAt: 'desc' },
+        });
+    }
+};
+exports.ScenarioService = ScenarioService;
+exports.ScenarioService = ScenarioService = ScenarioService_1 = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        config_1.ConfigService])
+], ScenarioService);
+//# sourceMappingURL=scenario.service.js.map

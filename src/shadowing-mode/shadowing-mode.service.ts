@@ -158,7 +158,7 @@ Return JSON format:
     let comparison = null;
     if (this.openai) {
       try {
-        const phrase = session.phrases.find((p) => p.id === phraseId);
+        const phrase = (session.phrases as any[]).find((p) => p.id === phraseId);
         if (phrase) {
           const response = await this.openai.chat.completions.create({
             model: 'gpt-4o-mini',
@@ -197,7 +197,7 @@ Return JSON format:
       submittedAt: new Date(),
     };
 
-    const updatedRecordings = [...(session.recordings || []), recording];
+    const updatedRecordings = [...((session.recordings as any[]) || []), recording];
 
     await this.prisma.shadowingSession.update({
       where: { id: sessionId },
@@ -223,8 +223,8 @@ Return JSON format:
     let totalScore = 0;
     let totalWeight = 0;
 
-    if (session.recordings && session.recordings.length > 0) {
-      session.recordings.forEach((recording) => {
+    if (session.recordings && (session.recordings as any[]).length > 0) {
+      (session.recordings as any[]).forEach((recording) => {
         if (recording.comparison && recording.comparison.score) {
           totalScore += recording.comparison.score;
           totalWeight += 1;

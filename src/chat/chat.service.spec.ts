@@ -119,7 +119,7 @@ describe('ChatService', () => {
 
       mockPrismaService.chatMessage.create.mockResolvedValue(mockMessage);
 
-      const result = await service.sendMessage('user1', 'chat1', 'user', 'Hello');
+      const result = await service.sendMessage('user1', 'chat1', 'Hello');
 
       expect(result).toEqual(mockMessage);
       expect(prismaService.chatMessage.create).toHaveBeenCalledWith({
@@ -150,7 +150,7 @@ describe('ChatService', () => {
 
       mockPrismaService.chatMessage.findMany.mockResolvedValue(mockMessages);
 
-      const result = await service.getChatMessages('chat1');
+      const result = await service.getChat('chat1', 'user1');
 
       expect(result).toEqual(mockMessages);
       expect(prismaService.chatMessage.findMany).toHaveBeenCalledWith({

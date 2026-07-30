@@ -13,7 +13,7 @@ export declare class AuthController {
             email: string;
             name: string;
             avatar: string;
-            level: import(".prisma/client").$Enums.Level;
+            level: import("@prisma/client").$Enums.Level;
             xp: number;
             coins: number;
             streak: number;
@@ -26,7 +26,7 @@ export declare class AuthController {
             email: string;
             name: string;
             avatar: string;
-            level: import(".prisma/client").$Enums.Level;
+            level: import("@prisma/client").$Enums.Level;
             xp: number;
             coins: number;
             streak: number;
@@ -44,7 +44,7 @@ export declare class AuthController {
             email: string;
             name: string;
             avatar: string;
-            level: import(".prisma/client").$Enums.Level;
+            level: import("@prisma/client").$Enums.Level;
             xp: number;
             coins: number;
             streak: number;
@@ -61,7 +61,7 @@ export declare class AuthController {
             email: string;
             name: string;
             avatar: string;
-            level: import(".prisma/client").$Enums.Level;
+            level: import("@prisma/client").$Enums.Level;
             xp: number;
             coins: number;
             streak: number;

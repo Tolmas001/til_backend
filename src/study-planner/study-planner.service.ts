@@ -193,7 +193,7 @@ Return JSON format:
     const dailyProgressNeeded = remainingProgress / daysRemaining;
 
     // Update daily tasks to catch up
-    const updatedDailyTasks = plan.dailyTasks.map((task: any) => ({
+    const updatedDailyTasks = (plan.dailyTasks as any[]).map((task: any) => ({
       ...task,
       tasks: task.tasks.map((t: string) => `${t} (${Math.round(dailyProgressNeeded)}% progress needed)`),
     }));

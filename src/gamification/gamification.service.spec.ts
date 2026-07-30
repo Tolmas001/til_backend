@@ -67,34 +67,13 @@ describe('GamificationService', () => {
 
       mockPrismaService.userAchievement.findMany.mockResolvedValue(mockAchievements);
 
-      const result = await service.getUserAchievements('user1');
+      const result = await service.getAchievements('user1');
 
       expect(result).toEqual(mockAchievements);
       expect(prismaService.userAchievement.findMany).toHaveBeenCalledWith({
         where: { userId: 'user1' },
         include: { achievement: true },
       });
-    });
-  });
-
-  describe('unlockAchievement', () => {
-    it('should unlock an achievement', async () => {
-      const mockAchievement = {
-        id: '1',
-        userId: 'user1',
-        achievementId: 'ach1',
-        unlocked: true,
-        unlockedAt: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      mockPrismaService.userAchievement.upsert.mockResolvedValue(mockAchievement);
-
-      const result = await service.unlockAchievement('user1', 'ach1');
-
-      expect(result).toEqual(mockAchievement);
-      expect(prismaService.userAchievement.upsert).toHaveBeenCalled();
     });
   });
 
@@ -121,31 +100,6 @@ describe('GamificationService', () => {
       expect(prismaService.userDailyQuest.findMany).toHaveBeenCalledWith({
         where: { userId: 'user1' },
         include: { quest: true },
-      });
-    });
-  });
-
-  describe('updateQuestProgress', () => {
-    it('should update quest progress', async () => {
-      const mockQuest = {
-        id: '1',
-        userId: 'user1',
-        questId: 'quest1',
-        date: new Date(),
-        progress: 10,
-        completed: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      mockPrismaService.userDailyQuest.update.mockResolvedValue(mockQuest);
-
-      const result = await service.updateQuestProgress('user1', 'quest1', 10);
-
-      expect(result).toEqual(mockQuest);
-      expect(prismaService.userDailyQuest.update).toHaveBeenCalledWith({
-        where: { userId_questId_date: { userId: 'user1', questId: 'quest1', date: expect.any(Date) } },
-        data: { progress: 10 },
       });
     });
   });

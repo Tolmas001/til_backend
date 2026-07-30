@@ -19,6 +19,7 @@ describe('LessonsService', () => {
       findUnique: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+      upsert: jest.fn(),
     },
   };
 
@@ -86,7 +87,7 @@ describe('LessonsService', () => {
 
       mockPrismaService.lesson.findUnique.mockResolvedValue(mockLesson);
 
-      const result = await service.findById('1');
+      const result = await service.findOne('1');
 
       expect(result).toEqual(mockLesson);
       expect(prismaService.lesson.findUnique).toHaveBeenCalledWith({
@@ -113,7 +114,7 @@ describe('LessonsService', () => {
 
       mockPrismaService.lesson.findMany.mockResolvedValue(mockLessons);
 
-      const result = await service.findByLevel('A0');
+      const result = await service.findAll('A0');
 
       expect(result).toEqual(mockLessons);
       expect(prismaService.lesson.findMany).toHaveBeenCalledWith({
@@ -123,7 +124,7 @@ describe('LessonsService', () => {
     });
   });
 
-  describe('markLessonComplete', () => {
+  describe('completeLesson', () => {
     it('should mark lesson as complete', async () => {
       const mockProgress = {
         id: '1',
@@ -136,9 +137,9 @@ describe('LessonsService', () => {
         updatedAt: new Date(),
       };
 
-      mockPrismaService.lessonProgress.upsert.mockResolvedValue(mockProgress);
+      mockPrismaService.lessonProgress.upsert = jest.fn().mockResolvedValue(mockProgress);
 
-      const result = await service.markLessonComplete('user1', 'lesson1', 100);
+      const result = await service.completeLesson('user1', 'lesson1', 100);
 
       expect(result).toEqual(mockProgress);
       expect(prismaService.lessonProgress.upsert).toHaveBeenCalled();

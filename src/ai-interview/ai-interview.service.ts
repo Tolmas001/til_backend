@@ -185,7 +185,7 @@ Return JSON format:
       throw new Error('Interview not found');
     }
 
-    const question = interview.questions.find((q) => q.id === questionId);
+    const question = (interview.questions as any[]).find((q) => q.id === questionId);
     if (!question) {
       throw new Error('Question not found');
     }
@@ -233,7 +233,7 @@ Return JSON format:
       submittedAt: new Date(),
     };
 
-    const updatedAnswers = [...(interview.answers || []), answerData];
+    const updatedAnswers = [...((interview.answers as any[]) || []), answerData];
 
     await this.prisma.interview.update({
       where: { id: interviewId },
@@ -259,8 +259,8 @@ Return JSON format:
     let totalScore = 0;
     let totalWeight = 0;
 
-    if (interview.answers && interview.answers.length > 0) {
-      interview.answers.forEach((answer) => {
+    if (interview.answers && (interview.answers as any[]).length > 0) {
+      (interview.answers as any[]).forEach((answer) => {
         if (answer.evaluation && answer.evaluation.score) {
           totalScore += answer.evaluation.score;
           totalWeight += 1;
@@ -275,7 +275,6 @@ Return JSON format:
       data: {
         status: 'completed',
         overallScore,
-        completedAt: new Date(),
       },
     });
 

@@ -7,7 +7,7 @@ export declare class ProgressService {
             id: string;
             name: string;
             email: string;
-            level: import(".prisma/client").$Enums.Level;
+            level: import("@prisma/client").$Enums.Level;
             xp: number;
             coins: number;
             streak: number;
@@ -21,13 +21,13 @@ export declare class ProgressService {
         };
         recentLessons: ({
             lesson: {
-                level: import(".prisma/client").$Enums.Level;
+                level: import("@prisma/client").$Enums.Level;
                 id: string;
+                description: string | null;
+                order: number;
                 createdAt: Date;
                 updatedAt: Date;
                 title: string;
-                description: string | null;
-                order: number;
                 locationId: string | null;
                 topics: string[];
                 dialogs: import("@prisma/client/runtime/client").JsonValue;
@@ -36,10 +36,10 @@ export declare class ProgressService {
             id: string;
             createdAt: Date;
             updatedAt: Date;
-            userId: string;
             lessonId: string;
-            completed: boolean;
             score: number | null;
+            userId: string;
+            completed: boolean;
             completedAt: Date | null;
         })[];
     }>;

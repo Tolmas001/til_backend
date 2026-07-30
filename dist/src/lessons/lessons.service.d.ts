@@ -4,7 +4,7 @@ export declare class LessonsService {
     private prisma;
     constructor(prisma: PrismaService);
     findAll(level?: Level): Promise<{
-        level: import(".prisma/client").$Enums.Level;
+        level: import("@prisma/client").$Enums.Level;
         id: string;
         description: string | null;
         order: number;
@@ -16,7 +16,7 @@ export declare class LessonsService {
         dialogs: import("@prisma/client/runtime/client").JsonValue;
     }[]>;
     findOne(id: string): Promise<{
-        level: import(".prisma/client").$Enums.Level;
+        level: import("@prisma/client").$Enums.Level;
         id: string;
         description: string | null;
         order: number;
@@ -33,10 +33,10 @@ export declare class LessonsService {
             createdAt: Date;
             updatedAt: Date;
             lessonId: string;
-            completed: boolean;
             score: number | null;
-            completedAt: Date | null;
             userId: string;
+            completed: boolean;
+            completedAt: Date | null;
         };
         userStats: {
             xp: number;

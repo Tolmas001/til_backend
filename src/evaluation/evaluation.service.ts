@@ -171,12 +171,12 @@ Return JSON format:
     };
 
     const skillLevels = {
-      grammarLevel: scoreToLevel(avgScores.grammar),
-      listeningLevel: scoreToLevel(avgScores.listening),
-      speakingLevel: scoreToLevel(avgScores.pronunciation),
-      readingLevel: scoreToLevel(avgScores.vocabulary),
-      writingLevel: scoreToLevel(avgScores.grammar),
-      overallLevel: scoreToLevel(avgScores.overall),
+      grammarLevel: scoreToLevel(avgScores.grammar) as any,
+      listeningLevel: scoreToLevel(avgScores.listening) as any,
+      speakingLevel: scoreToLevel(avgScores.pronunciation) as any,
+      readingLevel: scoreToLevel(avgScores.vocabulary) as any,
+      writingLevel: scoreToLevel(avgScores.grammar) as any,
+      overallLevel: scoreToLevel(avgScores.overall) as any,
     };
 
     const existing = await this.prisma.skillCefrLevel.findUnique({

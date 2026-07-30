@@ -23,11 +23,6 @@ export class ScenarioService {
   async generateScenario(userId: string, context: string, level: Level) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      include: {
-        weakTopics: true,
-        strongTopics: true,
-        careerGoal: true,
-      },
     });
 
     if (!user) {
@@ -103,7 +98,7 @@ Return JSON format:
     }
   }
 
-  private generateFallbackScenario(context: string, level: Level) {
+  private async generateFallbackScenario(context: string, level: Level) {
     const scenarios: Record<string, any> = {
       airport: {
         title: 'Aeroportda samolyot bekor qilindi',
@@ -296,7 +291,7 @@ Return JSON format:
 
     try {
       const aiScript = scenario.aiScript as any;
-      const response = await this.openai.chat.completions.create({
+      const aiResponse = await this.openai.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
           {
@@ -322,7 +317,7 @@ Return JSON format:
         response_format: { type: 'json_object' },
       });
 
-      const parsed = JSON.parse(response.choices[0].message.content || '{}');
+      const parsed = JSON.parse(aiResponse.choices[0].message.content || '{}');
       
       // Update progress
       await this.prisma.userScenarioProgress.update({

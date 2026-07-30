@@ -54,7 +54,8 @@ export class AiLearningService {
 
     // Calculate average mastery per topic
     for (const [topic, scores] of Object.entries(topicMastery)) {
-      const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+      const scoreArray = scores as number[];
+      const avgScore = scoreArray.reduce((a, b) => a + b, 0) / scoreArray.length;
       if (avgScore < 60) {
         weakTopics.push(topic);
       } else if (avgScore > 85) {

@@ -7,7 +7,7 @@ export declare class AuthService {
     private configService;
     constructor(usersService: UsersService, jwtService: JwtService, configService: ConfigService);
     validateUser(email: string, password: string): Promise<{
-        level: import(".prisma/client").$Enums.Level;
+        level: import("@prisma/client").$Enums.Level;
         id: string;
         name: string | null;
         createdAt: Date;
@@ -20,7 +20,11 @@ export declare class AuthService {
         coins: number;
         streak: number;
         lastActiveAt: Date;
-        subscription: import(".prisma/client").$Enums.Subscription;
+        subscription: import("@prisma/client").$Enums.Subscription;
+        careerGoal: import("@prisma/client").$Enums.CareerGoal | null;
+        learningStyle: import("@prisma/client").$Enums.LearningStyle | null;
+        weakTopics: string[];
+        strongTopics: string[];
     }>;
     login(email: string, password: string): Promise<{
         access_token: string;
@@ -29,7 +33,7 @@ export declare class AuthService {
             email: string;
             name: string;
             avatar: string;
-            level: import(".prisma/client").$Enums.Level;
+            level: import("@prisma/client").$Enums.Level;
             xp: number;
             coins: number;
             streak: number;
@@ -42,7 +46,7 @@ export declare class AuthService {
             email: string;
             name: string;
             avatar: string;
-            level: import(".prisma/client").$Enums.Level;
+            level: import("@prisma/client").$Enums.Level;
             xp: number;
             coins: number;
             streak: number;
@@ -55,7 +59,7 @@ export declare class AuthService {
             email: string;
             name: string;
             avatar: string;
-            level: import(".prisma/client").$Enums.Level;
+            level: import("@prisma/client").$Enums.Level;
             xp: number;
             coins: number;
             streak: number;
@@ -68,7 +72,7 @@ export declare class AuthService {
             email: string;
             name: string;
             avatar: string;
-            level: import(".prisma/client").$Enums.Level;
+            level: import("@prisma/client").$Enums.Level;
             xp: number;
             coins: number;
             streak: number;
